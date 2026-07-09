@@ -7,7 +7,7 @@
 
 import Foundation
 
-final class MainViewModel: BaseViewModel {
+final class MainViewModel: BaseViewModel<EmptyViewState> {
     weak var router: MainRouting?
 
     func didSelectMovie(id: UUID) {

@@ -7,7 +7,7 @@
 
 import Foundation
 
-final class RootViewModel: BaseViewModel {
+final class RootViewModel: BaseViewModel<EmptyViewState> {
     weak var router: RootRouting?
 
     private var didRouteFromRoot = false

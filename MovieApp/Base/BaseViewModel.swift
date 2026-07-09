@@ -15,12 +15,35 @@ protocol VCLifecycle: AnyObject {
     func viewDidDisappear()
 }
 
-protocol AnyViewModel: AnyObject, VCLifecycle {}
+protocol AnyViewModel: AnyObject, VCLifecycle {
+    associatedtype State: ViewState
 
-class BaseViewModel: AnyViewModel {
+    var state: State { get }
+    var onStateChanged: ((State) -> Void)? { get set }
+}
+
+class BaseViewModel<State: ViewState>: AnyViewModel {
+    private(set) var state: State
+    var onStateChanged: ((State) -> Void)?
+
+    init(initialState: State) {
+        self.state = initialState
+    }
+
+    func setState(_ state: State) {
+        self.state = state
+        onStateChanged?(state)
+    }
+
     func viewDidLoad() {}
     func viewWillAppear() {}
     func viewDidAppear() {}
     func viewWillDisappear() {}
     func viewDidDisappear() {}
+}
+
+extension BaseViewModel where State == EmptyViewState {
+    convenience init() {
+        self.init(initialState: .idle)
+    }
 }

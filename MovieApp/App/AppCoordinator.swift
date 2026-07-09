@@ -9,10 +9,15 @@ import UIKit
 
 final class AppCoordinator {
     private let navigationController: UINavigationController
+    private let dependencies: AppDependencyContainer
     private let logger = LogService()
 
-    init(navigationController: UINavigationController) {
+    init(
+        navigationController: UINavigationController,
+        dependencies: AppDependencyContainer
+    ) {
         self.navigationController = navigationController
+        self.dependencies = dependencies
     }
 
     func start() {
@@ -76,7 +81,7 @@ private extension AppCoordinator {
     }
 
     func makeLoginViewController() -> LoginViewController {
-        let viewModel = LoginViewModel()
+        let viewModel = LoginViewModel(loginUseCase: dependencies.loginUseCase)
         viewModel.router = self
 
         return LoginViewController(

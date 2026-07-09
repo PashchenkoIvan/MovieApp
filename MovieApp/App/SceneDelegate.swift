@@ -21,7 +21,11 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         let window = UIWindow(windowScene: windowScene)
         let navigationController = UINavigationController()
-        let appCoordinator = AppCoordinator(navigationController: navigationController)
+        let dependencies = AppDependencyContainer()
+        let appCoordinator = AppCoordinator(
+            navigationController: navigationController,
+            dependencies: dependencies
+        )
 
         window.rootViewController = navigationController
         window.makeKeyAndVisible()
