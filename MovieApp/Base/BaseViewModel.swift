@@ -5,7 +5,7 @@
 //  Created by Ivan P. on 08/07/2026.
 //
 
-import UIKit
+import Foundation
 
 protocol VCLifecycle: AnyObject {
     func viewDidLoad()

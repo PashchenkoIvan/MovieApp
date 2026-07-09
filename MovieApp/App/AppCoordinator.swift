@@ -7,79 +7,91 @@
 
 import UIKit
 
-protocol RootRouting: AnyObject {
-    func openMain()
-    func openLogin()
-}
-
-protocol LoginRouting: AnyObject {
-    func openMain()
-}
-
-protocol MainRouting: AnyObject {
-    func openMovieDetails(_ movieId: UUID)
-}
-
 final class AppCoordinator {
     private let navigationController: UINavigationController
-    
+    private let logger = LogService()
+
     init(navigationController: UINavigationController) {
         self.navigationController = navigationController
     }
-    
+
     func start() {
         showRoot()
     }
-    
-    private func showRoot() {
-        let viewModel = RootViewModel()
-        let viewController = RootViewController(
-            viewModel: viewModel,
-            screen: .root
-        )
-
-        viewModel.router = self
-
-        navigationController.setViewControllers([viewController], animated: false)
-    }
-    
-    private func showLogin() {
-        let viewModel = LoginViewModel()
-        let viewController = LoginViewController(
-            viewModel: viewModel,
-            screen: .login
-        )
-        
-        viewModel.router = self
-        
-        navigationController.pushViewController(viewController, animated: true)
-    }
-    
-    private func showMain() {
-        let viewModel = MainViewModel()
-        let viewController = MainViewController(
-            viewModel: viewModel,
-            screen: .main
-        )
-        
-        viewModel.router = self
-        
-        navigationController.pushViewController(viewController, animated: true)
-    }
 }
+
+// MARK: - RootRouting, LoginRouting
 
 extension AppCoordinator: RootRouting, LoginRouting {
     func openMain() {
-        showMain()
+        showMain(animated: true)
     }
-    
+
     func openLogin() {
-        showLogin()
+        showLogin(animated: true)
     }
 }
 
+// MARK: - MainRouting
+
 extension AppCoordinator: MainRouting {
     func openMovieDetails(_ movieId: UUID) {
-//        showMoviewDetails(movieId: movieId)
+        // TODO: Add MovieDetails screen and route to it from here.
+    }
+}
+
+// MARK: - Private Navigation
+
+private extension AppCoordinator {
+    func showRoot() {
+        let viewController = makeRootViewController()
+        logger.routingLog(from: .root, to: .root, type: .set)
+        navigationController.setViewControllers([viewController], animated: false)
+    }
+
+    func showLogin(animated: Bool) {
+        let viewController = makeLoginViewController()
+        logger.routingLog(from: .root, to: .login)
+        navigationController.pushViewController(viewController, animated: animated)
+    }
+
+    func showMain(animated: Bool) {
+        let viewController = makeMainViewController()
+        logger.routingLog(from: .root, to: .main, type: .set)
+        navigationController.setViewControllers([viewController], animated: animated)
+    }
+}
+
+// MARK: - Screen Factory
+
+private extension AppCoordinator {
+    func makeRootViewController() -> RootViewController {
+        let viewModel = RootViewModel()
+        viewModel.router = self
+
+        return RootViewController(
+            viewModel: viewModel,
+            screen: .root
+        )
+    }
+
+    func makeLoginViewController() -> LoginViewController {
+        let viewModel = LoginViewModel()
+        viewModel.router = self
+
+        return LoginViewController(
+            viewModel: viewModel,
+            screen: .login
+        )
+    }
+
+    func makeMainViewController() -> MainViewController {
+        let viewModel = MainViewModel()
+        viewModel.router = self
+
+        return MainViewController(
+            viewModel: viewModel,
+            screen: .main
+        )
     }
 }

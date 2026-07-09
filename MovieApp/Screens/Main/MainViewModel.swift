@@ -5,6 +5,12 @@
 //  Created by Ivan P. on 08/07/2026.
 //
 
+import Foundation
+
 final class MainViewModel: BaseViewModel {
     weak var router: MainRouting?
+
+    func didSelectMovie(id: UUID) {
+        router?.openMovieDetails(id)
+    }
 }

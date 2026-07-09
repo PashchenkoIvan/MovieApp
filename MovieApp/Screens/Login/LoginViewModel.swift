@@ -5,8 +5,12 @@
 //  Created by Ivan P. on 08/07/2026.
 //
 
-import UIKit
+import Foundation
 
 final class LoginViewModel: BaseViewModel {
     weak var router: LoginRouting?
+
+    func didCompleteLogin() {
+        router?.openMain()
+    }
 }
