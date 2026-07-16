@@ -23,22 +23,20 @@ final class LoginViewModel: BaseViewModel<LoginViewState> {
         let password = password.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard !username.isEmpty, !password.isEmpty else {
-            setState(.failed("Username and password are required."))
+            setState(.failed(messageKey: "login.error.credentialsRequired"))
             return
         }
 
-        setState(.loading)
-
-        Task { [weak self] in
-            guard let self else { return }
-
-            do {
+        performServerRequest(
+            loadingState: .loading,
+            failureState: { .failed(messageKey: $0) },
+            request: { [loginUseCase] in
                 try await loginUseCase.execute(username: username, password: password)
-                setState(.authenticated)
-                router?.openMain()
-            } catch {
-                setState(.failed(error.localizedDescription))
+            },
+            onSuccess: { [weak self] _ in
+                self?.setState(.authenticated)
+                self?.router?.openMain()
             }
-        }
+        )
     }
 }

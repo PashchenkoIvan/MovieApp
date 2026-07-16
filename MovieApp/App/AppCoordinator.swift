@@ -21,6 +21,7 @@ final class AppCoordinator {
     }
 
     func start() {
+        logger.log("Coordinator started", level: .info, category: .app)
         showRoot()
     }
 }
@@ -41,6 +42,12 @@ extension AppCoordinator: RootRouting, LoginRouting {
 
 extension AppCoordinator: MainRouting {
     func openMovieDetails(_ movieId: UUID) {
+        logger.routing(
+            from: .main,
+            to: .main,
+            type: .push,
+            animated: true
+        )
         // TODO: Add MovieDetails screen and route to it from here.
     }
 }
@@ -50,19 +57,19 @@ extension AppCoordinator: MainRouting {
 private extension AppCoordinator {
     func showRoot() {
         let viewController = makeRootViewController()
-        logger.routingLog(from: .root, to: .root, type: .set)
+        logger.routing(from: .root, to: .root, type: .set, animated: false)
         navigationController.setViewControllers([viewController], animated: false)
     }
 
     func showLogin(animated: Bool) {
         let viewController = makeLoginViewController()
-        logger.routingLog(from: .root, to: .login)
+        logger.routing(from: .root, to: .login, type: .push, animated: animated)
         navigationController.pushViewController(viewController, animated: animated)
     }
 
     func showMain(animated: Bool) {
         let viewController = makeMainViewController()
-        logger.routingLog(from: .root, to: .main, type: .set)
+        logger.routing(from: .root, to: .main, type: .set, animated: animated)
         navigationController.setViewControllers([viewController], animated: animated)
     }
 }

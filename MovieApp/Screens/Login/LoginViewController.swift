@@ -18,22 +18,22 @@ final class LoginViewController: BaseViewController<LoginViewModel> {
     override func setupUI() {
         view.backgroundColor = .systemBackground
 
-        titleLabel.text = "TMDB Login"
+        titleLabel.text = localized("login.title")
         titleLabel.font = .systemFont(ofSize: 28, weight: .bold)
         titleLabel.textAlignment = .center
 
-        usernameTextField.placeholder = "Username"
+        usernameTextField.placeholder = localized("login.field.username.placeholder")
         usernameTextField.borderStyle = .roundedRect
         usernameTextField.textContentType = .username
         usernameTextField.autocapitalizationType = .none
         usernameTextField.autocorrectionType = .no
 
-        passwordTextField.placeholder = "Password"
+        passwordTextField.placeholder = localized("login.field.password.placeholder")
         passwordTextField.borderStyle = .roundedRect
         passwordTextField.textContentType = .password
         passwordTextField.isSecureTextEntry = true
 
-        loginButton.setTitle("Log In", for: .normal)
+        loginButton.setTitle(localized("login.primaryButton.title"), for: .normal)
         loginButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
         loginButton.addTarget(self, action: #selector(loginButtonTapped), for: .touchUpInside)
 
@@ -72,9 +72,9 @@ final class LoginViewController: BaseViewController<LoginViewModel> {
         case .authenticated:
             setControlsEnabled(true)
             errorLabel.isHidden = true
-        case .failed(let message):
+        case .failed(let messageKey):
             setControlsEnabled(true)
-            errorLabel.text = message
+            errorLabel.text = localized(messageKey)
             errorLabel.isHidden = false
         }
     }

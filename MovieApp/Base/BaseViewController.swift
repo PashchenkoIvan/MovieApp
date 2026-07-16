@@ -8,19 +8,35 @@
 import SnapKit
 import UIKit
 
+// MARK: - Base View Controller
+
+/// Base class for all app view controllers.
+///
+/// It connects a screen with its ViewModel, listens to state changes,
+/// shows the common loading overlay, and forwards lifecycle events.
 class BaseViewController<V: AnyViewModel>: UIViewController {
     let viewModel: V
     let logger: LogService
 
+    private let screen: Screens
+    private let localizationService: LocalizationServiceProtocol
     private let loadingView = LoadingView()
 
-    init(viewModel: V, screen: Screens) {
+    // MARK: - Init
+
+    init(
+        viewModel: V,
+        screen: Screens,
+        localizationService: LocalizationServiceProtocol = LocalizationService.shared
+    ) {
         self.viewModel = viewModel
+        self.screen = screen
+        self.localizationService = localizationService
         self.logger = LogService(screen: screen)
 
         super.init(nibName: nil, bundle: nil)
 
-        logger.screenLog("init")
+        logger.lifecycle("init")
     }
 
     required init?(coder: NSCoder) {
@@ -31,7 +47,7 @@ class BaseViewController<V: AnyViewModel>: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        logger.screenLog("viewDidLoad")
+        logger.lifecycle("viewDidLoad")
 
         setupUI()
         setupLoadingView()
@@ -42,38 +58,55 @@ class BaseViewController<V: AnyViewModel>: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        logger.screenLog("viewWillAppear")
+        logger.lifecycle("viewWillAppear")
         viewModel.viewWillAppear()
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        logger.screenLog("viewDidAppear")
+        logger.lifecycle("viewDidAppear")
         viewModel.viewDidAppear()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        logger.screenLog("viewWillDisappear")
+        logger.lifecycle("viewWillDisappear")
         viewModel.viewWillDisappear()
     }
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        logger.screenLog("viewDidDisappear")
+        logger.lifecycle("viewDidDisappear")
         viewModel.viewDidDisappear()
     }
 
     // MARK: - Override Points
 
+    /// Override this method in a child screen to create UI.
     func setupUI() {}
 
+    /// Override this method in a child screen to render state.
     func render(_ state: V.State) {}
 
+    // MARK: - Localization
+
+    /// Gets localized text for this screen.
+    ///
+    /// The string catalog table is selected from `screen.localizationTable`.
+    func localized(_ key: String, value: String = "") -> String {
+        localizationService.localizedString(
+            forKey: key,
+            table: screen.localizationTable,
+            value: value
+        )
+    }
+
     deinit {
-        logger.screenLog("deinit")
+        logger.lifecycle("deinit")
     }
 }
+
+// MARK: - Private Binding
 
 private extension BaseViewController {
     func setupLoadingView() {
@@ -83,17 +116,27 @@ private extension BaseViewController {
         }
     }
 
+    /// Connects ViewModel state changes to this screen.
     func bindViewModel() {
         viewModel.onStateChanged = { [weak self] state in
             self?.renderState(state)
         }
     }
 
+    /// Handles common state logic before screen-specific rendering.
     func renderState(_ state: V.State) {
+        logger.state(
+            "Render state",
+            metadata: [
+                "state": String(describing: state),
+                "isLoading": String(state.isLoading)
+            ]
+        )
         setLoading(state.isLoading)
         render(state)
     }
 
+    /// Shows or hides the common loading overlay.
     func setLoading(_ isLoading: Bool) {
         if isLoading {
             loadingView.startAnimating()

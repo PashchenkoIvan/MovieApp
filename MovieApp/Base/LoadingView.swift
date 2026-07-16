@@ -8,9 +8,16 @@
 import SnapKit
 import UIKit
 
+// MARK: - Loading View
+
+/// A shared loading overlay for all screens.
+///
+/// `BaseViewController` shows this view when `ViewState.isLoading` is `true`.
 final class LoadingView: UIView {
     private let containerView = UIView()
     private let activityIndicator = UIActivityIndicatorView(style: .large)
+
+    // MARK: - Init
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -21,16 +28,22 @@ final class LoadingView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
+    // MARK: - Public Methods
+
+    /// Shows the overlay and starts the spinner.
     func startAnimating() {
         isHidden = false
         activityIndicator.startAnimating()
     }
 
+    /// Stops the spinner and hides the overlay.
     func stopAnimating() {
         activityIndicator.stopAnimating()
         isHidden = true
     }
 }
+
+// MARK: - Private Setup
 
 private extension LoadingView {
     func setupUI() {

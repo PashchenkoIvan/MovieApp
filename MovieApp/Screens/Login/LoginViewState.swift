@@ -11,7 +11,7 @@ enum LoginViewState: ViewState, Equatable {
     case idle
     case loading
     case authenticated
-    case failed(String)
+    case failed(messageKey: String)
 
     var isLoading: Bool {
         self == .loading
