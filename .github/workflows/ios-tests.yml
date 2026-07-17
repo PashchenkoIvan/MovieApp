@@ -16,8 +16,15 @@ concurrency:
 
 jobs:
   unit-tests:
-    name: Unit Tests
+    name: Unit Tests iOS ${{ matrix.ios-major }}
     runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ios-major:
+          - "26"
+          - "18"
+          - "17"
 
     steps:
       - name: Checkout
@@ -27,13 +34,50 @@ jobs:
         run: xcodebuild -version
 
       - name: Run unit tests
+        env:
+          IOS_MAJOR: ${{ matrix.ios-major }}
+          IPHONEOS_DEPLOYMENT_TARGET: "17.0"
         run: |
-          DEVICE_ID=$(xcrun simctl list devices available | awk -F '[()]' '/iPhone/ { print $2; exit }')
+          DEVICE_ID=$(
+            xcodebuild -showdestinations \
+              -project MovieApp.xcodeproj \
+              -scheme MovieApp \
+              IPHONEOS_DEPLOYMENT_TARGET="${IPHONEOS_DEPLOYMENT_TARGET}" 2>/dev/null |
+            awk -F '[:,}]' '/platform:iOS Simulator/ && /arch:arm64/ && /name:iPhone/ {
+              for (i = 1; i <= NF; i++) {
+                if ($i ~ / id$/) {
+                  id = $(i + 1)
+                  gsub(/^ +| +$/, "", id)
+                }
+                if ($i ~ / OS$/) {
+                  os = $(i + 1)
+                  gsub(/^ +| +$/, "", os)
+                }
+              }
+              split(os, osParts, ".")
+              if (id != "" && os != "" && osParts[1] == ENVIRON["IOS_MAJOR"]) {
+                print os " " id
+              }
+            }' |
+            sort -V |
+            tail -n 1 |
+            awk '{ print $2 }'
+          )
 
-          echo "Using simulator: ${DEVICE_ID}"
+          if [ -z "${DEVICE_ID}" ]; then
+            echo "No compatible iPhone simulator found for iOS ${IOS_MAJOR}."
+            xcodebuild -showdestinations \
+              -project MovieApp.xcodeproj \
+              -scheme MovieApp \
+              IPHONEOS_DEPLOYMENT_TARGET="${IPHONEOS_DEPLOYMENT_TARGET}"
+            exit 1
+          fi
+
+          echo "Using iOS ${IOS_MAJOR} simulator: ${DEVICE_ID}"
 
           xcodebuild test \
             -project MovieApp.xcodeproj \
             -scheme MovieApp \
             -destination "platform=iOS Simulator,id=${DEVICE_ID}" \
-            -only-testing:MovieAppTests
+            -only-testing:MovieAppTests \
+            IPHONEOS_DEPLOYMENT_TARGET="${IPHONEOS_DEPLOYMENT_TARGET}"
