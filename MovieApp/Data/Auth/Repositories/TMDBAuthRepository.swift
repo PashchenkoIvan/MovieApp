@@ -9,9 +9,14 @@ import Foundation
 
 final class TMDBAuthRepository: AuthRepository {
     private let authAPI: TMDBAuthAPIProtocol
+    private let sessionDataSource: AuthSessionKeychainDataSource
 
-    init(authAPI: TMDBAuthAPIProtocol) {
+    init(
+        authAPI: TMDBAuthAPIProtocol,
+        sessionDataSource: AuthSessionKeychainDataSource
+    ) {
         self.authAPI = authAPI
+        self.sessionDataSource = sessionDataSource
     }
 
     func login(username: String, password: String) async throws -> AuthSession {
@@ -22,7 +27,10 @@ final class TMDBAuthRepository: AuthRepository {
             requestToken: requestToken
         )
         let sessionID = try await authAPI.createSession(requestToken: validatedToken)
+        let session = AuthSession(sessionID: sessionID)
 
-        return AuthSession(sessionID: sessionID)
+        try sessionDataSource.saveSession(session)
+
+        return session
     }
 }
