@@ -17,21 +17,26 @@ concurrency:
 jobs:
   unit-tests:
     name: Unit Tests iOS ${{ matrix.ios-major }}
-    runs-on: macos-latest
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
-        ios-major:
-          - "26"
-          - "18"
-          - "17"
+        include:
+          - ios-major: "26"
+            runner: macos-latest
+          - ios-major: "18"
+            runner: macos-15
+          - ios-major: "17"
+            runner: macos-14
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Show Xcode version
-        run: xcodebuild -version
+        run: |
+          xcodebuild -version
+          xcodebuild -showsdks
 
       - name: Run unit tests
         env:
