@@ -7,10 +7,16 @@
 
 import Foundation
 
+protocol AuthSessionDataSource {
+    func saveSession(_ session: AuthSession) throws
+    func getSession() throws -> AuthSession?
+    func deleteSession() throws
+}
+
 // MARK: - Auth Session Keychain Data Source
 
 /// CRUD service for auth session in Keychain.
-final class AuthSessionKeychainDataSource {
+final class AuthSessionKeychainDataSource: AuthSessionDataSource {
     private enum Key {
         static let sessionID = "auth.sessionID"
     }

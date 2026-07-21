@@ -9,11 +9,11 @@ import Foundation
 
 final class TMDBAuthRepository: AuthRepository {
     private let authAPI: TMDBAuthAPIProtocol
-    private let sessionDataSource: AuthSessionKeychainDataSource
+    private let sessionDataSource: AuthSessionDataSource
 
     init(
         authAPI: TMDBAuthAPIProtocol,
-        sessionDataSource: AuthSessionKeychainDataSource
+        sessionDataSource: AuthSessionDataSource
     ) {
         self.authAPI = authAPI
         self.sessionDataSource = sessionDataSource
