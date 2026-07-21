@@ -33,36 +33,41 @@ jobs:
           IPHONEOS_DEPLOYMENT_TARGET: "17.0"
         run: |
           DEVICE_ID=$(
-            xcodebuild -showdestinations \
-              -project MovieApp.xcodeproj \
-              -scheme MovieApp \
-              IPHONEOS_DEPLOYMENT_TARGET="${IPHONEOS_DEPLOYMENT_TARGET}" 2>/dev/null |
-            awk -F '[:,}]' '/platform:iOS Simulator/ && /arch:arm64/ && /name:iPhone/ {
-              for (i = 1; i <= NF; i++) {
-                if ($i ~ / id$/) {
-                  id = $(i + 1)
-                  gsub(/^ +| +$/, "", id)
-                }
-                if ($i ~ / OS$/) {
-                  os = $(i + 1)
-                  gsub(/^ +| +$/, "", os)
-                }
-              }
-              if (id != "" && os != "") {
-                print os " " id
-              }
-            }' |
-            sort -V |
-            tail -n 1 |
-            awk '{ print $2 }'
+            python3 <<'PY'
+          import json
+          import re
+          import subprocess
+
+          result = subprocess.run(
+              ["xcrun", "simctl", "list", "devices", "available", "--json"],
+              check=True,
+              capture_output=True,
+              text=True
+          )
+
+          data = json.loads(result.stdout)
+          candidates = []
+
+          for runtime, devices in data.get("devices", {}).items():
+              match = re.search(r"iOS[- ](\d+)[-.](\d+)", runtime)
+              if not match:
+                  continue
+
+              version = tuple(map(int, match.groups()))
+
+              for device in devices:
+                  name = device.get("name", "")
+                  if device.get("isAvailable") and name.startswith("iPhone"):
+                      candidates.append((version, device.get("udid", "")))
+
+          if candidates:
+              print(sorted(candidates)[-1][1])
+          PY
           )
 
           if [ -z "${DEVICE_ID}" ]; then
             echo "No compatible iPhone simulator found."
-            xcodebuild -showdestinations \
-              -project MovieApp.xcodeproj \
-              -scheme MovieApp \
-              IPHONEOS_DEPLOYMENT_TARGET="${IPHONEOS_DEPLOYMENT_TARGET}"
+            xcrun simctl list devices available
             exit 1
           fi
 
