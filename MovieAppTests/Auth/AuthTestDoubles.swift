@@ -76,9 +76,28 @@ final class AuthSessionDataSourceSpy: AuthSessionDataSource {
     }
 }
 
+final class AuthRepositorySpy: AuthRepository {
+    private(set) var loginCalls: [AuthRepositoryLoginCall] = []
+    var loginResult: Result<AuthSession, Error> = .success(AuthSession(sessionID: "session-id"))
+
+    func login(username: String, password: String) async throws -> AuthSession {
+        loginCalls.append(AuthRepositoryLoginCall(
+            username: username,
+            password: password
+        ))
+        return try loginResult.get()
+    }
+}
+
+struct AuthRepositoryLoginCall: Equatable {
+    let username: String
+    let password: String
+}
+
 enum AuthTestError: Error, Equatable {
     case requestToken
     case validateLogin
     case createSession
     case saveSession
+    case login
 }

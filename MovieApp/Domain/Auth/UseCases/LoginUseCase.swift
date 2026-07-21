@@ -18,7 +18,8 @@ final class TMDBLoginUseCase: LoginUseCase {
     init(authRepository: AuthRepository) {
         self.authRepository = authRepository
     }
-
+    
+    @discardableResult
     func execute(username: String, password: String) async throws -> AuthSession {
         try await authRepository.login(username: username, password: password)
     }
@@ -31,6 +32,7 @@ final class FailingLoginUseCase: LoginUseCase {
         self.error = error
     }
 
+    @discardableResult
     func execute(username: String, password: String) async throws -> AuthSession {
         throw error
     }
