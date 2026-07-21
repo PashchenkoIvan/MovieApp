@@ -180,22 +180,3 @@ struct BaseViewModelSuite {
         #expect(viewModel.state == .idle)
     }
 }
-
-enum FakeViewState: ViewState, Equatable {
-    case idle
-    case loading
-    case loaded(String)
-    case failed(String)
-
-    var isLoading: Bool {
-        self == .loading
-    }
-}
-
-enum FakeError: LocalizedError {
-    case failed
-    
-    var errorDescription: String? {
-        "Error"
-    }
-}
