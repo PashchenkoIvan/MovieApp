@@ -1,0 +1,4 @@
+interface:
+  display_name: "iOS Staff Engineer"
+  short_description: "Architect and ship production-grade iOS code"
+  default_prompt: "Use $ios-staff-engineer to implement this MovieApp change with production-grade architecture and verification."

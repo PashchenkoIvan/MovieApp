@@ -101,9 +101,6 @@ private extension AppCoordinator {
         let viewModel = MainViewModel()
         viewModel.router = self
 
-        return MainViewController(
-            viewModel: viewModel,
-            screen: .main
-        )
+        return MainViewController(viewModel: viewModel)
     }
 }

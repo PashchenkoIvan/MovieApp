@@ -1,0 +1,4 @@
+interface:
+  display_name: "Premium iOS Design"
+  short_description: "Craft polished Apple-native UIKit experiences"
+  default_prompt: "Use $premium-ios-design to design and implement a polished MovieApp screen with visual verification."
