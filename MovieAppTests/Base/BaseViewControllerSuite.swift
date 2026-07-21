@@ -186,6 +186,20 @@ struct BaseViewControllerSuite {
         #expect(viewController.renderedStates == [.idle, .loading, .loaded(), .failed()])
     }
     
+    @Test("Multiple state changes keep render order")
+    func multipleStateChangesKeepRenderOrder() {
+        viewController.loadViewIfNeeded()
+        
+        viewModel.setState(.loaded("First"))
+        viewModel.setState(.loaded("Second"))
+        
+        #expect(viewController.renderedStates == [
+            .idle,
+            .loaded("First"),
+            .loaded("Second")
+        ])
+    }
+    
     @Test("Loading overlay does not block render")
     func loadingOverlayDoesNotBlockRender() {
         viewController.loadViewIfNeeded()
@@ -214,6 +228,15 @@ struct BaseViewControllerSuite {
         let loadingView = try #require(viewController.view.firstSubview(of: LoadingView.self))
         
         #expect(loadingView.isHidden == false)
+    }
+    
+    @Test("Initial loading state is rendered")
+    func initialLoadingStateIsRendered() {
+        viewModel.state = .loading
+        
+        viewController.loadViewIfNeeded()
+        
+        #expect(viewController.renderedStates == [.loading])
     }
     
     @Test("Loading state change shows loading view")
@@ -263,4 +286,3 @@ struct BaseViewControllerSuite {
         #expect(value == "Root fallback")
     }
 }
-

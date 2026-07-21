@@ -47,6 +47,15 @@ struct BaseViewModelSuite {
         #expect(states == [.loading, .loaded("OK")])
     }
     
+    @Test("Set state without observer does not crash")
+    func setStateWithoutObserverDoesNotCrash() {
+        viewModel.onStateChanged = nil
+        
+        viewModel.setState(.loaded("OK"))
+        
+        #expect(viewModel.state == .loaded("OK"))
+    }
+    
     @Test("Server request sets loading state")
     func serverRequestSetsLoadingState() async {
         let task = viewModel.performServerRequest(
@@ -102,6 +111,23 @@ struct BaseViewModelSuite {
         await task.value
         
         #expect(viewModel.state == .failed("Error"))
+    }
+    
+    @Test("Server request emits loading and failure states on error")
+    func serverRequestEmitsLoadingAndFailureStatesOnError() async {
+        var states: [FakeViewState] = []
+        viewModel.onStateChanged = { states.append($0) }
+        
+        let task = viewModel.performServerRequest(
+            loadingState: .loading,
+            failureState: { .failed($0) },
+            request: { throw FakeError.failed },
+            onSuccess: { (_: String) in }
+        )
+        
+        await task.value
+        
+        #expect(states == [.loading, .failed("Error")])
     }
     
     @Test("Server request does not call success on error")
@@ -160,6 +186,23 @@ struct BaseViewModelSuite {
         #expect(response == "OK")
     }
     
+    @Test("Local storage request with loading emits loading state")
+    func localStorageRequestWithLoadingEmitsLoadingState() async {
+        var states: [FakeViewState] = []
+        viewModel.onStateChanged = { states.append($0) }
+        
+        let task = viewModel.performLocalStorageRequest(
+            loadingState: .loading,
+            failureState: { .failed($0) },
+            request: { "OK" },
+            onSuccess: { (_: String) in }
+        )
+        
+        await task.value
+        
+        #expect(states == [.loading])
+    }
+    
     @Test("Local storage request sets failure state on error")
     func localStorageRequestSetsFailureStateOnError() async {
         let task = viewModel.performLocalStorageRequest(
@@ -171,6 +214,50 @@ struct BaseViewModelSuite {
         await task.value
         
         #expect(viewModel.state == .failed("Error"))
+    }
+    
+    @Test("Local storage request with loading emits loading and failure states on error")
+    func localStorageRequestWithLoadingEmitsLoadingAndFailureStatesOnError() async {
+        var states: [FakeViewState] = []
+        viewModel.onStateChanged = { states.append($0) }
+        
+        let task = viewModel.performLocalStorageRequest(
+            loadingState: .loading,
+            failureState: { .failed($0) },
+            request: { throw FakeError.failed },
+            onSuccess: { (_: String) in }
+        )
+        
+        await task.value
+        
+        #expect(states == [.loading, .failed("Error")])
+    }
+    
+    @Test("Local storage request does not call success on error")
+    func localStorageRequestDoesNotCallSuccessOnError() async {
+        var didCallSuccess = false
+        let task = viewModel.performLocalStorageRequest(
+            failureState: { .failed($0) },
+            request: { throw FakeError.failed },
+            onSuccess: { (_: String) in didCallSuccess = true }
+        )
+        
+        await task.value
+        
+        #expect(didCallSuccess == false)
+    }
+    
+    @Test("Lifecycle methods do not change state")
+    func lifecycleMethodsDoNotChangeState() {
+        viewModel.setState(.loaded("OK"))
+        
+        viewModel.viewDidLoad()
+        viewModel.viewWillAppear()
+        viewModel.viewDidAppear()
+        viewModel.viewWillDisappear()
+        viewModel.viewDidDisappear()
+        
+        #expect(viewModel.state == .loaded("OK"))
     }
     
     @Test("Empty view state convenience init uses idle")
