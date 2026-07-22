@@ -20,6 +20,7 @@ enum RoutingType: String {
 
 /// All app screens used by logger and localization.
 enum Screens: String {
+    case home = "Home"
     case main = "Main"
     case login = "Login"
     case root = "Root"
@@ -27,6 +28,8 @@ enum Screens: String {
     /// String catalog table for each screen.
     var localizationTable: String? {
         switch self {
+        case .home:
+            return "HomeLocalizable"
         case .login:
             return "LoginLocalizable"
         case .main:

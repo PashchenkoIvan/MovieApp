@@ -56,14 +56,14 @@ struct MainViewControllerSuite {
         #expect(tabs[safe: 3]?.topViewController is AccountViewController)
     }
 
-    @Test("Tab root controllers render placeholder structure")
-    func tabRootControllersRenderPlaceholderStructure() throws {
+    @Test("Non-home tab root controllers render placeholder structure")
+    func nonHomeTabRootControllersRenderPlaceholderStructure() throws {
         let viewController = MainViewController(viewModel: MainViewModel())
 
         viewController.loadViewIfNeeded()
 
         let tabs = try #require(viewController.viewControllers as? [UINavigationController])
-        for tab in tabs {
+        for tab in tabs.dropFirst() {
             let rootViewController = try #require(tab.topViewController)
             rootViewController.loadViewIfNeeded()
 
@@ -72,6 +72,7 @@ struct MainViewControllerSuite {
         }
     }
 }
+
 
 
 private extension Array {

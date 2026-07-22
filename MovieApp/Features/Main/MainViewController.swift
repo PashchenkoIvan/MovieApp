@@ -13,15 +13,20 @@ import UIKit
 final class MainViewController: UITabBarController {
     private let viewModel: MainViewModel
     private let localizationService: LocalizationServiceProtocol
+    private let makeHomeViewController: @MainActor () -> HomeViewController
 
     // MARK: - Init
 
     init(
         viewModel: MainViewModel,
-        localizationService: LocalizationServiceProtocol = LocalizationService.shared
+        localizationService: LocalizationServiceProtocol = LocalizationService.shared,
+        makeHomeViewController: @escaping @MainActor () -> HomeViewController = {
+            HomeViewController(viewModel: HomeViewModel(loadHomeMoviesUseCase: PreviewLoadHomeMoviesUseCase()))
+        }
     ) {
         self.viewModel = viewModel
         self.localizationService = localizationService
+        self.makeHomeViewController = makeHomeViewController
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -81,7 +86,7 @@ private extension MainViewController {
     func setupTabs() {
         viewControllers = [
             makeNavigationController(
-                rootViewController: HomeViewController(),
+                rootViewController: makeHomeViewController(),
                 titleKey: "main.tab.home",
                 imageName: "house",
                 selectedImageName: "house.fill"
@@ -117,7 +122,7 @@ private extension MainViewController {
         rootViewController.title = title
 
         let navigationController = UINavigationController(rootViewController: rootViewController)
-        navigationController.navigationBar.prefersLargeTitles = true
+        navigationController.setNavigationBarHidden(true, animated: false)
         navigationController.tabBarItem = UITabBarItem(
             title: title,
             image: UIImage(systemName: imageName),

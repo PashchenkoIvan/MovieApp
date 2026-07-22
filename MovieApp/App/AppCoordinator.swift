@@ -22,6 +22,7 @@ final class AppCoordinator {
 
     func start() {
         logger.log("Coordinator started", level: .info, category: .app)
+        navigationController.setNavigationBarHidden(true, animated: false)
         showRoot()
     }
 }
@@ -101,6 +102,11 @@ private extension AppCoordinator {
         let viewModel = MainViewModel()
         viewModel.router = self
 
-        return MainViewController(viewModel: viewModel)
+        return MainViewController(
+            viewModel: viewModel,
+            makeHomeViewController: { [dependencies] in
+                HomeViewController(viewModel: HomeViewModel(loadHomeMoviesUseCase: dependencies.loadHomeMoviesUseCase))
+            }
+        )
     }
 }
