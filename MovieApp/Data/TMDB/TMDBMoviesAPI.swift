@@ -46,10 +46,10 @@ final class TMDBMoviesAPI: TMDBMoviesAPIProtocol {
     }
 }
 
-private struct TMDBMovieListResponseDTO: Decodable, Equatable, Sendable {
+struct TMDBMovieListResponseDTO: Decodable, Equatable, Sendable {
     let results: [TMDBMovieSummaryDTO]?
 }
 
-private struct TMDBMovieTrailersResponseDTO: Decodable, Equatable, Sendable {
+struct TMDBMovieTrailersResponseDTO: Decodable, Equatable, Sendable {
     let results: [TMDBMovieTrailerDTO]?
 }

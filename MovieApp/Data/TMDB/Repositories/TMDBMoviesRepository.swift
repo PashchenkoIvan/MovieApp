@@ -16,6 +16,7 @@ final class TMDBMoviesRepository: MoviesRepository {
     }
 
     private let moviesAPI: TMDBMoviesAPIProtocol
+    private let logger = LogService()
 
     init(moviesAPI: TMDBMoviesAPIProtocol) {
         self.moviesAPI = moviesAPI
@@ -65,12 +66,24 @@ private extension TMDBMoviesRepository {
         var trailers: [MovieTrailer] = []
 
         for movie in movies {
-            guard let dto = try? await moviesAPI.movieTrailers(movieID: movie.id, language: Defaults.language).bestTrailer,
-                  let trailer = MovieTrailer(movie: movie, dto: dto) else {
+            do {
+                guard let dto = try await moviesAPI.movieTrailers(movieID: movie.id, language: Defaults.language).bestTrailer,
+                      let trailer = MovieTrailer(movie: movie, dto: dto) else {
+                    continue
+                }
+
+                trailers.append(trailer)
+            } catch {
+                logger.network(
+                    "Movie trailers request failed",
+                    level: .warning,
+                    metadata: [
+                        "movieID": String(movie.id),
+                        "error": error.localizedDescription
+                    ]
+                )
                 continue
             }
-
-            trailers.append(trailer)
         }
 
         return trailers

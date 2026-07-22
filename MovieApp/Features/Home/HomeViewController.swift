@@ -65,7 +65,7 @@ final class HomeViewController: BaseViewController<HomeViewModel> {
             showMessage(
                 iconName: "wifi.exclamationmark",
                 title: localized("home.error.title", value: "Could not load movies"),
-                message: message.isEmpty ? localized("home.error.message", value: "Check your connection and try again.") : message
+                message: localized(message.isEmpty ? "home.error.message" : message, value: localized("home.error.message", value: "Check your connection and try again."))
             )
         }
     }
@@ -741,10 +741,12 @@ private final class RemoteMovieImageView: UIImageView {
     }
 
     private let imageSize: ImageSize
+    private let imageLoader: MovieImageLoader
     private var loadTask: Task<Void, Never>?
 
-    init(imageSize: ImageSize) {
+    init(imageSize: ImageSize, imageLoader: MovieImageLoader = .shared) {
         self.imageSize = imageSize
+        self.imageLoader = imageLoader
         super.init(frame: .zero)
         image = UIImage(systemName: "film")
         tintColor = MovieAppDesignSystem.Color.textTertiary
@@ -771,10 +773,16 @@ private final class RemoteMovieImageView: UIImageView {
 
         guard let url else { return }
 
-        loadTask = Task { [weak self] in
+        let targetSize = CGSize(
+            width: max(bounds.width, 320),
+            height: max(bounds.height, imageSize == .poster ? 480 : 180)
+        )
+        let scale = traitCollection.displayScale
+
+        loadTask = Task { [weak self, imageLoader] in
             do {
-                let (data, _) = try await URLSession.shared.data(from: url)
-                guard !Task.isCancelled, let image = UIImage(data: data) else { return }
+                let image = try await imageLoader.image(from: url, targetSize: targetSize, scale: scale)
+                guard !Task.isCancelled else { return }
 
                 await MainActor.run {
                     guard let self else { return }

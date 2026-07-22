@@ -52,9 +52,29 @@ final class HomeViewModel: BaseViewModel<HomeViewState> {
                 guard !Task.isCancelled else { return }
 
                 await MainActor.run {
-                    self?.setState(.failed(message: error.localizedDescription))
+                    self?.setState(.failed(message: Self.messageKey(for: error)))
                 }
             }
+        }
+    }
+
+    private static func messageKey(for error: Error) -> String {
+        switch error {
+        case APIError.missingConfiguration(_):
+            return "home.error.configuration.message"
+        case APIError.underlying(let underlyingError):
+            guard let urlError = underlyingError as? URLError else {
+                return "home.error.message"
+            }
+
+            switch urlError.code {
+            case .notConnectedToInternet, .networkConnectionLost, .timedOut:
+                return "home.error.offline.message"
+            default:
+                return "home.error.message"
+            }
+        default:
+            return "home.error.message"
         }
     }
 }

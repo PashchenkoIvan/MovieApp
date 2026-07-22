@@ -57,7 +57,35 @@ struct HomeViewModelSuite {
             return false
         }
 
-        #expect(viewModel.state == .failed(message: HomeTestError.loadFailed.localizedDescription))
+        #expect(viewModel.state == .failed(message: "home.error.message"))
+    }
+
+    @Test("Offline failure emits offline message key")
+    func offlineFailureEmitsOfflineMessageKey() async {
+        let useCase = LoadHomeMoviesUseCaseSpy(result: .failure(APIError.underlying(URLError(.notConnectedToInternet))))
+        let viewModel = HomeViewModel(loadHomeMoviesUseCase: useCase)
+
+        viewModel.viewDidLoad()
+        await waitUntil {
+            if case .failed = viewModel.state { return true }
+            return false
+        }
+
+        #expect(viewModel.state == .failed(message: "home.error.offline.message"))
+    }
+
+    @Test("Missing configuration failure emits configuration message key")
+    func missingConfigurationFailureEmitsConfigurationMessageKey() async {
+        let useCase = LoadHomeMoviesUseCaseSpy(result: .failure(APIError.missingConfiguration("TMDBReadAccessToken")))
+        let viewModel = HomeViewModel(loadHomeMoviesUseCase: useCase)
+
+        viewModel.viewDidLoad()
+        await waitUntil {
+            if case .failed = viewModel.state { return true }
+            return false
+        }
+
+        #expect(viewModel.state == .failed(message: "home.error.configuration.message"))
     }
 
     @Test("Retry loads again")

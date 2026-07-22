@@ -17,11 +17,23 @@ final class AppDependencyContainer {
     let loadHomeMoviesUseCase: LoadHomeMoviesUseCase
     let swiftDataStorage: SwiftDataStorage?
     let favoriteMoviesLocalDataSource: FavoriteMoviesLocalDataSource?
+    private let logger = LogService()
 
     // MARK: - Init
 
     init() {
-        let storage = try? SwiftDataStorage()
+        let storage: SwiftDataStorage?
+        do {
+            storage = try SwiftDataStorage()
+        } catch {
+            storage = nil
+            logger.log(
+                "SwiftData storage initialization failed",
+                level: .error,
+                category: .app,
+                metadata: ["error": error.localizedDescription]
+            )
+        }
 
         self.swiftDataStorage = storage
         self.favoriteMoviesLocalDataSource = storage.map {
